@@ -1,0 +1,117 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<polymer-element name="img-color-shift" attributes="src height width animation">
+
+  <template>
+    <canvas id="main-canvas" height="{{height}}" width="{{width}}"></canvas>
+    <input type="range" id="range" min="0" max="100" style="display:none">
+  </template>
+
+  <script>
+    var scope, cachedContext, cachedCanvas, cachedData,
+        canvas, context;
+
+    var red = 1, green = 1, blue = 1, stepSize = .005, index = 0, stepPadding = .0000005;
+
+    function loadImage() {
+        debugger;
+        scope.width = this.width;
+        scope.height = this.height;
+        cachedCanvas = document.createElement('canvas');
+        cachedCanvas.width = scope.width;
+        cachedCanvas.height = scope.height;
+        cachedContext = cachedCanvas.getContext('2d');
+
+        cachedContext.drawImage(this, 0, 0);
+        cachedData = cachedContext.getImageData(0, 0, scope.width, scope.height).data;
+    }
+
+    function displayImage(red, green, blue) {
+        var imageData = canvas.getContext('2d').createImageData(scope.width, scope.height);
+
+        for(var i = 0, n = cachedData.length; i < n; i += 4) {
+          imageData.data[i] = cachedData[i] * red;
+          imageData.data[i + 1] = cachedData[i + 1] * green;
+          imageData.data[i + 2] = cachedData[i + 2] * blue;
+          imageData.data[i + 3] = cachedData[i + 3];
+        }
+
+        context.putImageData(imageData, 0, 0);
+    }
+
+    function startAnimation() {
+        window.requestAnimationFrame(animate);
+    }
+
+    function animate() {
+        displayImage(red, green, blue);
+        updateColors();
+        window.requestAnimationFrame(animate);
+    }
+
+    function updateColors() {
+        // console.log(scope.animation, scope.animation[index]);
+        var ani = scope.animation[index];
+
+        if( red > ani[0]) {
+            red -= stepSize;
+        } else if( red < ani[0]) {
+            red += stepSize;
+        }
+
+        if(green > ani[1]) {
+            green -= stepSize;
+        } else if(green < ani[1]) {
+            green += stepSize;
+        }
+
+        if(blue > ani[2]) {
+            blue -= stepSize;
+        } else if(green < ani[2]) {
+            blue += stepSize;
+        }
+
+        var redDiff = Math.abs(red - ani[0]),
+            greenDiff = Math.abs(green - ani[1]),
+            blueDiff = Math.abs(blue - ani[2]);
+
+        var curPrecent = Math.max(redDiff, greenDiff, blueDiff);
+
+        scope.$.range.value = (100 / scope.animation.length) * (index + 1) - (100 / scope.animation.length * curPrecent);
+
+        if(redDiff < stepPadding && greenDiff < stepPadding && blueDiff < stepPadding) {
+            index++;
+
+            if(index >= scope.animation.length) index = 0;
+        }
+    }
+
+
+    Polymer('img-color-shift', {
+      ready: function() {
+        scope = this;
+        
+        var image = new Image();
+        image.crossOrigin = "Anonymous";
+        image.onload = loadImage;
+
+        image.src = this.src;
+
+        canvas = this.$['main-canvas'];
+        context = canvas.getContext('2d');
+
+      },
+      animationChanged: function() {
+        if(cachedData) startAnimation();
+        else {
+            setTimeout(function() {
+                if(cachedData) startAnimation();
+                else setTimeout(arguments.callee, 100);
+            }, 100);
+        }
+      },
+      height: 500,
+      width: 500
+    });
+  </script>
+</polymer-element>

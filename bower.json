@@ -1,0 +1,22 @@
+{
+  "name": "img-color-shift-component",
+  "version": "0.0.0",
+  "authors": [
+    "Bret Little <bret.little@gmail.com>"
+  ],
+  "main": "img-color-shift-component.html",
+  "moduleType": [
+    "es6"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.4.0"
+  }
+}
